@@ -12,7 +12,7 @@ Auto-snipes every new memecoin pool on Monad mainnet from block 1.
 No fees, no rug, fully open-source.  
 Tested and ready for November 24 launch.
 
-Tips super appreciated (helps me keep it free):  
+Tips are super appreciated (helps me keep it free):  
 **0xF1dAcA98a25Af7ccd2199071f679F8669f34bf48**
 
 First 1,000 runners get my personal snipes copied if you star ⭐ + retweet the post!
