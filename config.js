@@ -2,16 +2,11 @@ require('dotenv').config();
 const { ethers } = require('ethers');
 
 const config = {
-  // We will update these two lines tomorrow when Monad is live
-  rpcUrl: "https://testnet-rpc.monad.xyz",
-  wsUrl: "wss://testnet-rpc.monad.xyz",
-
-  privateKey: process.env.PRIVATE_KEY,
-
-  // These two addresses will be announced tomorrow in Monad Discord
-  // Right now they are placeholders – we will replace them on launch day
-  factoryAddress: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",  // ← WILL CHANGE
-  routerAddress:  "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",  // ← WILL CHANGE
+rpcUrl: "https://rpc.monad.xyz",
+wsUrl: "wss://rpc.monad.xyz",
+factoryAddress: "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",  // AethonSwap factory (first live DEX)
+routerAddress: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",  // AethonSwap router
+buyAmountInEth: "0.01",  // Tiny snipes to start
 
   // How much MON (or ETH on Monad) to spend per snipe
   buyAmountInEth: "0.05",        // ← 0.05 MON per snipe (you can lower to 0.01)
