@@ -7,8 +7,11 @@ console.log("Monad Sniper starting... Waiting for new pools...");
 const provider = new ethers.WebSocketProvider(config.wsUrl);
 const wallet = new ethers.Wallet(config.privateKey, provider);
 
-// Uniswap V2 PairCreated topic
-const PAIR_CREATED_TOPIC = "0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9";
+// Uniswap V2 PairCreated event ABI
+const PAIR_CREATED_ABI = ['event PairCreated(address indexed token0, address indexed token1, address pair, uint)'];
+
+// Compute the topic hash correctly for v6
+const PAIR_CREATED_TOPIC = ethers.keccak256(ethers.toUtf8Bytes('PairCreated(address indexed token0, address indexed token1, address pair, uint)'));
 
 async function buyToken(tokenAddress) {
   console.log(`Sniping ${tokenAddress}...`);
@@ -37,23 +40,26 @@ async function buyToken(tokenAddress) {
   }
 }
 
-// Listen for pending TXs
-provider.on("pending", async (txHash) => {
-  try {
-    const tx = await provider.getTransaction(txHash);
-    if (!tx || !tx.data) return;
+// Subscribe to logs for PairCreated events from the factory
+const filter = {
+  address: config.factoryAddress,
+  topics: [PAIR_CREATED_TOPIC]
+};
 
-    if (tx.to && tx.to.toLowerCase() === config.factoryAddress.toLowerCase() && tx.data.includes(PAIR_CREATED_TOPIC.slice(2))) {
-      console.log("NEW POOL FOUND!");
+provider.on(filter, async (log) => {
+  console.log("NEW POOL FOUND!");
 
-      // Wait 3s for logs, then extract token (basic for day-1)
-      setTimeout(async () => {
-        console.log("Extracting token..."); // Add real log parse if needed
-        const tokenAddress = "0xEXAMPLE_NEW_TOKEN"; // Replace with real extraction post-launch
-        await buyToken(tokenAddress);
-      }, 3000);
-    }
-  } catch (e) {}
+  // Parse the event log to extract token0 and token1
+  const iface = new ethers.Interface(PAIR_CREATED_ABI);
+  const decoded = iface.parseLog(log);
+  const token0 = decoded.args.token0;
+  const token1 = decoded.args.token1;
+
+  // Assume we snipe the non-native token (e.g., new memecoin); adjust logic if needed
+  const tokenAddress = (token0 === "0x0000000000000000000000000000000000000000") ? token1 : token0;
+  console.log(`Extracted token: ${tokenAddress}`);
+
+  await buyToken(tokenAddress);
 });
 
-console.log("Sniper LIVE – watching mempool...");
+console.log("Sniper LIVE – watching for PairCreated events...");
