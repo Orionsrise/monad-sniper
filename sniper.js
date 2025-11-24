@@ -59,6 +59,24 @@ provider.on(filter, async (log) => {
   const tokenAddress = (token0 === "0x0000000000000000000000000000000000000000") ? token1 : token0;
   console.log(`Extracted token: ${tokenAddress}`);
 
+  const pairAddress = decoded.args.pair;  // From the event
+
+  // Get reserves to check liquidity
+  const pair = new ethers.Contract(pairAddress, ['function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast)'], provider);
+  const reserves = await pair.getReserves();
+  const reserve0 = reserves[0];
+  const reserve1 = reserves[1];
+
+  // Assume reserve0 is MON; calculate USD equiv (use oracle or approx; here assume MON ~$0.025)
+  const monReserve = (token0 === "0x0000000000000000000000000000000000000000") ? reserve0 : reserve1;
+  const liquidityUsd = Number(ethers.formatEther(monReserve)) * 0.025 * 2;  // Approx total liquidity in USD
+
+  if (liquidityUsd < config.minLiquidityUsd) {
+    console.log(`Skipping low liquidity pool (${liquidityUsd} USD < ${config.minLiquidityUsd} min)`);
+    return;
+  }
+
+  // Then proceed to buyToken...
   await buyToken(tokenAddress);
 });
 
