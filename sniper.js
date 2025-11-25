@@ -1,11 +1,12 @@
 const { ethers } = require('ethers');
+require('dotenv').config(); // Load .env
 const config = require('./config.js');
 
 console.log("Monad Sniper starting... Waiting for new pools...");
 
 // Real-time websocket for launch
 const provider = new ethers.WebSocketProvider(config.wsUrl);
-const wallet = new ethers.Wallet(config.privateKey, provider);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider); // Use from .env
 
 // Uniswap V2 PairCreated event ABI
 const PAIR_CREATED_ABI = ['event PairCreated(address indexed token0, address indexed token1, address pair, uint)'];
@@ -79,5 +80,15 @@ provider.on(filter, async (log) => {
   // Then proceed to buyToken...
   await buyToken(tokenAddress);
 });
+
+// Debug log to confirm provider connection (every 30s)
+setInterval(async () => {
+  try {
+    const block = await provider.getBlockNumber();
+    console.log(`Provider connected - Current block: ${block}`);
+  } catch (error) {
+    console.log("Provider connection error:", error.message);
+  }
+}, 30000);
 
 console.log("Sniper LIVE – watching for PairCreated events...");
